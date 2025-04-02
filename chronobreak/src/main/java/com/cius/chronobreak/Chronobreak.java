@@ -5,6 +5,9 @@ import com.cius.chronobreak.commands.PlaytimeCommand;
 import com.cius.chronobreak.commands.TimeleftCommand;
 import com.cius.chronobreak.config.PlaytimeData;
 import com.cius.chronobreak.events.PlayerEvents;
+import com.mojang.brigadier.CommandDispatcher;
+
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -23,6 +26,8 @@ public class Chronobreak {
     private PlaytimeData playtimeData;
 
     public Chronobreak() {
+        LOGGER.info("Chronobreak mod is initializing");
+        
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
         
@@ -33,7 +38,7 @@ public class Chronobreak {
     }
     
     private void setup(final FMLCommonSetupEvent event) {
-        LOGGER.info("Chronobreak mod initializing");
+        LOGGER.info("Chronobreak mod setup phase");
         
         // Load playtime data
         playtimeData.loadData();
@@ -46,9 +51,11 @@ public class Chronobreak {
     public void onRegisterCommands(RegisterCommandsEvent event) {
         LOGGER.info("Registering Chronobreak commands");
         
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        
         // Register commands
-        TimeleftCommand.register(event.getDispatcher(), playtimeData);
-        PlaytimeCommand.register(event.getDispatcher(), playtimeData);
-        AddtimeCommand.register(event.getDispatcher(), playtimeData);
+        TimeleftCommand.register(dispatcher, playtimeData);
+        PlaytimeCommand.register(dispatcher, playtimeData);
+        AddtimeCommand.register(dispatcher, playtimeData);
     }
 }

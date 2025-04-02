@@ -25,11 +25,18 @@ displayName="Chronobreak" #mandatory
 #displayURL="https://change.me.example.invalid/" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
 #logoFile="chronobreak.png" #optional
-# A text field displayed in the mod UI
+# This is an example mods.toml file. It contains the data relating to the loading mods.
+modLoader="javafml" #mandatory
+loaderVersion="[47,)" #mandatory - matches Minecraft 1.20.1 Forge versions
+license="MIT"
+issueTrackerURL="https://github.com/cius/chronobreak/issues" #optional
+
+[[mods]] #mandatory
+modId="chronobreak" #mandatory
+version="1.0.0" #mandatory
+displayName="Chronobreak" #mandatory
 credits="Thanks to everyone who made this possible" #optional
-# A text field displayed in the mod UI
-authors="Your Name" #optional
-# The description text for the mod (multi line!) (#mandatory)
+authors="Cius" #optional
 description='''
 A Minecraft mod to limit and track player time on a multiplayer server.
 
@@ -40,22 +47,17 @@ Features:
 - Persistent streak system
 - AFK detection
 '''
-# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.chronobreak]] #optional
-    # the modid of the dependency
-    modId="forge" #mandatory
-    # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
-    # The version range of the dependency
-    versionRange="[40,)" #mandatory
-    # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+
+[[dependencies.chronobreak]] 
+    modId="forge" 
+    mandatory=true 
+    versionRange="[47,)" 
     ordering="NONE"
-    # Side this dependency is applied on - BOTH, CLIENT or SERVER
     side="BOTH"
-# Here's another dependency
+
 [[dependencies.chronobreak]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.19,1.20.2)"
+    versionRange="[1.20.1]"
     ordering="NONE"
     side="BOTH"

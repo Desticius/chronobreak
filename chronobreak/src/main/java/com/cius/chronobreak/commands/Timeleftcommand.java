@@ -4,25 +4,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.cius.chronobreak.config.PlaytimeData;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 
 import java.util.UUID;
 
 public class TimeleftCommand {
     
-    public static void register(CommandDispatcher<CommandSource> dispatcher, PlaytimeData playtimeData) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, PlaytimeData playtimeData) {
         dispatcher.register(
             Commands.literal("timeleft")
                 .executes(context -> {
                     return showTimeLeft(context.getSource(), null, playtimeData);
                 })
                 .then(Commands.argument("player", StringArgumentType.word())
-                    .requires(source -> source.hasPermissionLevel(2)) // Require op level for checking other players
+                    .requires(source -> source.hasPermission(2)) // Require op level for checking other players
                     .executes(context -> {
                         String playerName = StringArgumentType.getString(context, "player");
                         return showTimeLeft(context.getSource(), playerName, playtimeData);
@@ -31,20 +32,22 @@ public class TimeleftCommand {
         );
     }
     
-    private static int showTimeLeft(CommandSource source, String targetPlayerName, PlaytimeData playtimeData) {
+    private static int showTimeLeft(CommandSourceStack source, String targetPlayerName, PlaytimeData playtimeData) {
         try {
             if (targetPlayerName == null) {
                 // Show time for command sender
-                ServerPlayerEntity player = source.asPlayer();
+                ServerPlayer player = source.getPlayerOrException();
                 UUID playerUUID = player.getUUID();
                 int remaining = playtimeData.getRemainingTime(playerUUID);
                 
                 if (remaining == Integer.MAX_VALUE) {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.GREEN + "It's Saturday! You have unlimited playtime today."), false);
+                    Component message = Component.literal("It's Saturday! You have unlimited playtime today.")
+                        .withStyle(ChatFormatting.GREEN);
+                    source.sendSuccess(() -> message, false);
                 } else {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.GREEN + "You have " + formatTime(remaining) + " of playtime remaining today."), false);
+                    Component message = Component.literal("You have " + formatTime(remaining) + " of playtime remaining today.")
+                        .withStyle(ChatFormatting.GREEN);
+                    source.sendSuccess(() -> message, false);
                 }
             } else {
                 // Show time for specified player (admin command)
@@ -53,7 +56,7 @@ public class TimeleftCommand {
                 String displayName = targetPlayerName;
                 
                 // Try to get player UUID from online players
-                for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                     if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
                         targetUUID = player.getUUID();
                         displayName = player.getName().getString();
@@ -63,26 +66,30 @@ public class TimeleftCommand {
                 
                 if (targetUUID == null) {
                     // Player not found online
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.RED + "Player not found: " + targetPlayerName), false);
+                    Component errorMessage = Component.literal("Player not found: " + targetPlayerName)
+                        .withStyle(ChatFormatting.RED);
+                    source.sendFailure(errorMessage);
                     return 0;
                 }
                 
                 int remaining = playtimeData.getRemainingTime(targetUUID);
                 
                 if (remaining == Integer.MAX_VALUE) {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.GREEN + displayName + " has unlimited playtime today (Saturday)."), false);
+                    Component message = Component.literal(displayName + " has unlimited playtime today (Saturday).")
+                        .withStyle(ChatFormatting.GREEN);
+                    source.sendSuccess(() -> message, false);
                 } else {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.GREEN + displayName + " has " + formatTime(remaining) + " of playtime remaining today."), false);
+                    Component message = Component.literal(displayName + " has " + formatTime(remaining) + " of playtime remaining today.")
+                        .withStyle(ChatFormatting.GREEN);
+                    source.sendSuccess(() -> message, false);
                 }
             }
             
             return 1;
         } catch (CommandSyntaxException e) {
-            source.sendFeedback(new StringTextComponent(
-                    TextFormatting.RED + "This command can only be used by players."), false);
+            Component errorMessage = Component.literal("This command can only be used by players.")
+                .withStyle(ChatFormatting.RED);
+            source.sendFailure(errorMessage);
             return 0;
         }
     }

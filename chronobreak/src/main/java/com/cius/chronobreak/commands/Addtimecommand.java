@@ -4,21 +4,22 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.cius.chronobreak.config.PlaytimeData;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 
 import java.util.UUID;
 
 public class AddtimeCommand {
     
-    public static void register(CommandDispatcher<CommandSource> dispatcher, PlaytimeData playtimeData) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, PlaytimeData playtimeData) {
         dispatcher.register(
             Commands.literal("addtime")
-                .requires(source -> source.hasPermissionLevel(2)) // Require op level for this command
+                .requires(source -> source.hasPermission(2)) // Require op level for this command
                 .then(Commands.argument("player", StringArgumentType.word())
                     .then(Commands.argument("minutes", IntegerArgumentType.integer(1))
                         .executes(context -> {
@@ -31,13 +32,13 @@ public class AddtimeCommand {
         );
     }
     
-    private static int addTime(CommandSource source, String targetPlayerName, int minutes, PlaytimeData playtimeData) {
+    private static int addTime(CommandSourceStack source, String targetPlayerName, int minutes, PlaytimeData playtimeData) {
         MinecraftServer server = source.getServer();
         UUID targetUUID = null;
         String displayName = targetPlayerName;
         
         // Try to get player UUID from online players
-        for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
                 targetUUID = player.getUUID();
                 displayName = player.getName().getString();
@@ -49,19 +50,20 @@ public class AddtimeCommand {
             // Use the addTime method from PlaytimeData
             playtimeData.addTime(targetUUID, minutes);
             
-            source.sendFeedback(new StringTextComponent(
-                    TextFormatting.GREEN + "Added " + minutes + " minutes to " + displayName + "'s time limit."), true);
+            // Create a properly colored message component
+            Component message = Component.literal("Added " + minutes + " minutes to " + displayName + "'s time limit.").withStyle(ChatFormatting.GREEN);
+            source.sendSuccess(() -> message, true);
             
             // Notify player if online
-            ServerPlayerEntity targetPlayer = server.getPlayerList().getPlayerByUUID(targetUUID);
+            ServerPlayer targetPlayer = server.getPlayerList().getPlayer(targetUUID);
             if (targetPlayer != null) {
-                targetPlayer.sendMessage(new StringTextComponent(
-                        TextFormatting.GREEN + "An admin granted you " + minutes + " minute" + 
-                        (minutes != 1 ? "s" : "") + " of bonus playtime!"), targetUUID);
+                Component playerMessage = Component.literal("An admin granted you " + minutes + " minute" + 
+                        (minutes != 1 ? "s" : "") + " of bonus playtime!").withStyle(ChatFormatting.GREEN);
+                targetPlayer.sendSystemMessage(playerMessage);
             }
         } else {
-            source.sendFeedback(new StringTextComponent(
-                    TextFormatting.RED + "Player not found: " + targetPlayerName), false);
+            Component errorMessage = Component.literal("Player not found: " + targetPlayerName).withStyle(ChatFormatting.RED);
+            source.sendFailure(errorMessage);
         }
         
         return 1;

@@ -4,25 +4,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.cius.chronobreak.config.PlaytimeData;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 
 import java.util.UUID;
 
 public class PlaytimeCommand {
     
-    public static void register(CommandDispatcher<CommandSource> dispatcher, PlaytimeData playtimeData) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, PlaytimeData playtimeData) {
         dispatcher.register(
             Commands.literal("playtime")
                 .executes(context -> {
                     return showPlaytime(context.getSource(), null, playtimeData);
                 })
                 .then(Commands.argument("player", StringArgumentType.word())
-                    .requires(source -> source.hasPermissionLevel(2)) // Require op level for checking other players
+                    .requires(source -> source.hasPermission(2)) // Require op level for checking other players
                     .executes(context -> {
                         String playerName = StringArgumentType.getString(context, "player");
                         return showPlaytime(context.getSource(), playerName, playtimeData);
@@ -31,22 +32,24 @@ public class PlaytimeCommand {
         );
     }
     
-    private static int showPlaytime(CommandSource source, String targetPlayerName, PlaytimeData playtimeData) {
+    private static int showPlaytime(CommandSourceStack source, String targetPlayerName, PlaytimeData playtimeData) {
         try {
             if (targetPlayerName == null) {
                 // Show playtime for command sender
-                ServerPlayerEntity player = source.asPlayer();
+                ServerPlayer player = source.getPlayerOrException();
                 UUID playerUUID = player.getUUID();
                 long totalPlaytime = playtimeData.getTotalPlaytime(playerUUID);
                 int streak = playtimeData.getStreak(playerUUID);
                 
-                source.sendFeedback(new StringTextComponent(
-                        TextFormatting.GREEN + "Your total playtime: " + formatTime(totalPlaytime)), false);
+                Component message = Component.literal("Your total playtime: " + formatTime(totalPlaytime))
+                    .withStyle(ChatFormatting.GREEN);
+                source.sendSuccess(() -> message, false);
                 
                 if (streak > 0) {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.AQUA + "Current streak: " + streak + " day" + (streak != 1 ? "s" : "") + 
-                            " (+" + Math.min(streak, 20) + " minute bonus)"), false);
+                    Component streakMessage = Component.literal("Current streak: " + streak + " day" + 
+                            (streak != 1 ? "s" : "") + " (+" + Math.min(streak, 20) + " minute bonus)")
+                            .withStyle(ChatFormatting.AQUA);
+                    source.sendSuccess(() -> streakMessage, false);
                 }
             } else {
                 // Show playtime for specified player (admin command)
@@ -55,7 +58,7 @@ public class PlaytimeCommand {
                 String displayName = targetPlayerName;
                 
                 // Try to get player UUID from online players
-                for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                     if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
                         targetUUID = player.getUUID();
                         displayName = player.getName().getString();
@@ -65,28 +68,32 @@ public class PlaytimeCommand {
                 
                 if (targetUUID == null) {
                     // Player not found online
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.RED + "Player not found: " + targetPlayerName), false);
+                    Component errorMessage = Component.literal("Player not found: " + targetPlayerName)
+                        .withStyle(ChatFormatting.RED);
+                    source.sendFailure(errorMessage);
                     return 0;
                 }
                 
                 long totalPlaytime = playtimeData.getTotalPlaytime(targetUUID);
                 int streak = playtimeData.getStreak(targetUUID);
                 
-                source.sendFeedback(new StringTextComponent(
-                        TextFormatting.GREEN + displayName + "'s total playtime: " + formatTime(totalPlaytime)), false);
+                Component playerMessage = Component.literal(displayName + "'s total playtime: " + formatTime(totalPlaytime))
+                    .withStyle(ChatFormatting.GREEN);
+                source.sendSuccess(() -> playerMessage, false);
                 
                 if (streak > 0) {
-                    source.sendFeedback(new StringTextComponent(
-                            TextFormatting.AQUA + "Current streak: " + streak + " day" + (streak != 1 ? "s" : "") + 
-                            " (+" + Math.min(streak, 20) + " minute bonus)"), false);
+                    Component streakMessage = Component.literal("Current streak: " + streak + " day" + 
+                            (streak != 1 ? "s" : "") + " (+" + Math.min(streak, 20) + " minute bonus)")
+                            .withStyle(ChatFormatting.AQUA);
+                    source.sendSuccess(() -> streakMessage, false);
                 }
             }
             
             return 1;
         } catch (CommandSyntaxException e) {
-            source.sendFeedback(new StringTextComponent(
-                    TextFormatting.RED + "This command can only be used by players."), false);
+            Component errorMessage = Component.literal("This command can only be used by players.")
+                .withStyle(ChatFormatting.RED);
+            source.sendFailure(errorMessage);
             return 0;
         }
     }

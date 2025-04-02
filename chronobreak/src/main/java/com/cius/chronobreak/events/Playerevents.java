@@ -1,9 +1,10 @@
 package com.cius.chronobreak.events;
 
 import com.cius.chronobreak.config.PlaytimeData;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -25,8 +26,8 @@ public class PlayerEvents {
 
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getPlayer() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+        if (event.getEntity() instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) event.getEntity();
             playtimeData.playerLogin(player.getUUID(), player.getName().getString());
             
             // Reset warnings
@@ -35,21 +36,21 @@ public class PlayerEvents {
             // Show remaining time message
             int remaining = playtimeData.getRemainingTime(player.getUUID());
             if (remaining == Integer.MAX_VALUE) {
-                player.sendMessage(new StringTextComponent(
-                        TextFormatting.GREEN + "It's Saturday! Enjoy unlimited playtime today."), 
-                        player.getUUID());
+                Component message = Component.literal("It's Saturday! Enjoy unlimited playtime today.")
+                    .withStyle(ChatFormatting.GREEN);
+                player.sendSystemMessage(message);
             } else {
-                player.sendMessage(new StringTextComponent(
-                        TextFormatting.GREEN + "Welcome! You have " + formatTime(remaining) + " of playtime remaining today."), 
-                        player.getUUID());
+                Component message = Component.literal("Welcome! You have " + formatTime(remaining) + " of playtime remaining today.")
+                    .withStyle(ChatFormatting.GREEN);
+                player.sendSystemMessage(message);
             }
         }
     }
 
     @SubscribeEvent
     public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (event.getPlayer() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+        if (event.getEntity() instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) event.getEntity();
             playtimeData.playerLogout(player.getUUID());
             
             // Clean up warnings
@@ -57,11 +58,15 @@ public class PlayerEvents {
         }
     }
 
+    // For player movement tracking in 1.20.1, we use LivingTickEvent for ServerPlayers
     @SubscribeEvent
-    public void onPlayerMove(PlayerEvent.PlayerMoveEvent event) {
-        if (event.getPlayer() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-            playtimeData.updatePlayerActivity(player.getUUID());
+    public void onPlayerTick(net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent event) {
+        if (event.getEntity() instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) event.getEntity();
+            // Update activity status whenever player is active
+            if (player.walkDist > 0) {
+                playtimeData.updatePlayerActivity(player.getUUID());
+            }
         }
     }
 
@@ -84,7 +89,7 @@ public class PlayerEvents {
             return;
         }
         
-        for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             UUID playerUUID = player.getUUID();
             
             // Skip AFK players
@@ -101,23 +106,23 @@ public class PlayerEvents {
             
             // Time warnings
             if (remaining <= 0) {
-                player.connection.disconnect(new StringTextComponent(
-                        "You've reached your daily playtime limit. Come back tomorrow!"));
+                Component kickMessage = Component.literal("You've reached your daily playtime limit. Come back tomorrow!");
+                player.connection.disconnect(kickMessage);
             } else if (remaining <= 5 && !playerWarnings.containsKey(playerUUID)) {
                 playerWarnings.put(playerUUID, 1);
-                player.sendMessage(new StringTextComponent(
-                        TextFormatting.RED + "Warning: You have less than 5 minutes of playtime remaining today!"), 
-                        playerUUID);
+                Component warningMessage = Component.literal("Warning: You have less than 5 minutes of playtime remaining today!")
+                    .withStyle(ChatFormatting.RED);
+                player.sendSystemMessage(warningMessage);
             } else if (remaining <= 15 && playerWarnings.getOrDefault(playerUUID, 0) < 1) {
                 playerWarnings.put(playerUUID, 1);
-                player.sendMessage(new StringTextComponent(
-                        TextFormatting.YELLOW + "Warning: You have less than 15 minutes of playtime remaining today!"), 
-                        playerUUID);
+                Component warningMessage = Component.literal("Warning: You have less than 15 minutes of playtime remaining today!")
+                    .withStyle(ChatFormatting.YELLOW);
+                player.sendSystemMessage(warningMessage);
             } else if (remaining <= 30 && playerWarnings.getOrDefault(playerUUID, 0) < 1) {
                 playerWarnings.put(playerUUID, 1);
-                player.sendMessage(new StringTextComponent(
-                        TextFormatting.YELLOW + "Warning: You have less than 30 minutes of playtime remaining today!"), 
-                        playerUUID);
+                Component warningMessage = Component.literal("Warning: You have less than 30 minutes of playtime remaining today!")
+                    .withStyle(ChatFormatting.YELLOW);
+                player.sendSystemMessage(warningMessage);
             }
         }
     }
