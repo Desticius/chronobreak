@@ -1,9 +1,9 @@
-package com.yourname.chronobreak.commands;
+package com.cius.chronobreak.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.yourname.chronobreak.config.PlaytimeData;
+import com.cius.chronobreak.config.PlaytimeData;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -36,7 +36,7 @@ public class PlaytimeCommand {
             if (targetPlayerName == null) {
                 // Show playtime for command sender
                 ServerPlayerEntity player = source.asPlayer();
-                UUID playerUUID = player.getUniqueID();
+                UUID playerUUID = player.getUUID();
                 long totalPlaytime = playtimeData.getTotalPlaytime(playerUUID);
                 int streak = playtimeData.getStreak(playerUUID);
                 
@@ -57,7 +57,7 @@ public class PlaytimeCommand {
                 // Try to get player UUID from online players
                 for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
                     if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
-                        targetUUID = player.getUniqueID();
+                        targetUUID = player.getUUID();
                         displayName = player.getName().getString();
                         break;
                     }

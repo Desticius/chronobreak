@@ -1,9 +1,9 @@
-package com.yourname.chronobreak.commands;
+package com.cius.chronobreak.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.yourname.chronobreak.config.PlaytimeData;
+import com.cius.chronobreak.config.PlaytimeData;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -39,7 +39,31 @@ public class AddtimeCommand {
         // Try to get player UUID from online players
         for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
             if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
-                targetUUID = player.getUniqueID();
+                targetUUID = player.getUUID();
                 displayName = player.getName().getString();
                 break;
             }
+        }
+        
+        if (targetUUID != null) {
+            // Use the addTime method from PlaytimeData
+            playtimeData.addTime(targetUUID, minutes);
+            
+            source.sendFeedback(new StringTextComponent(
+                    TextFormatting.GREEN + "Added " + minutes + " minutes to " + displayName + "'s time limit."), true);
+            
+            // Notify player if online
+            ServerPlayerEntity targetPlayer = server.getPlayerList().getPlayerByUUID(targetUUID);
+            if (targetPlayer != null) {
+                targetPlayer.sendMessage(new StringTextComponent(
+                        TextFormatting.GREEN + "An admin granted you " + minutes + " minute" + 
+                        (minutes != 1 ? "s" : "") + " of bonus playtime!"), targetUUID);
+            }
+        } else {
+            source.sendFeedback(new StringTextComponent(
+                    TextFormatting.RED + "Player not found: " + targetPlayerName), false);
+        }
+        
+        return 1;
+    }
+}

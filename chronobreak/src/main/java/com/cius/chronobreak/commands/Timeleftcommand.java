@@ -3,10 +3,9 @@ package com.cius.chronobreak.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.yourname.chronobreak.config.PlaytimeData;
+import com.cius.chronobreak.config.PlaytimeData;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
@@ -37,7 +36,7 @@ public class TimeleftCommand {
             if (targetPlayerName == null) {
                 // Show time for command sender
                 ServerPlayerEntity player = source.asPlayer();
-                UUID playerUUID = player.getUniqueID();
+                UUID playerUUID = player.getUUID();
                 int remaining = playtimeData.getRemainingTime(playerUUID);
                 
                 if (remaining == Integer.MAX_VALUE) {
@@ -56,7 +55,7 @@ public class TimeleftCommand {
                 // Try to get player UUID from online players
                 for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
                     if (player.getName().getString().equalsIgnoreCase(targetPlayerName)) {
-                        targetUUID = player.getUniqueID();
+                        targetUUID = player.getUUID();
                         displayName = player.getName().getString();
                         break;
                     }

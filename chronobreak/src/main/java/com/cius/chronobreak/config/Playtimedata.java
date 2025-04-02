@@ -3,8 +3,6 @@ package com.cius.chronobreak.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,8 +13,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -198,6 +194,24 @@ public class PlaytimeData {
         PlayerTimeData timeData = playerData.get(playerUUID);
         if (timeData != null) {
             timeData.bonusTime += minutes;
+            
+            // Reduce the daily time used to effectively give more time
+            timeData.dailyTime = Math.max(0, timeData.dailyTime - minutes);
+            
+            saveData();
+        }
+    }
+    
+    // Added these methods to support the AddtimeCommand
+    public long getPlaytimeToday(UUID playerUUID) {
+        PlayerTimeData timeData = playerData.get(playerUUID);
+        return timeData != null ? timeData.dailyTime : 0;
+    }
+    
+    public void setPlaytimeToday(UUID playerUUID, long minutes) {
+        PlayerTimeData timeData = playerData.get(playerUUID);
+        if (timeData != null) {
+            timeData.dailyTime = (int) Math.max(0, minutes);
             saveData();
         }
     }

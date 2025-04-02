@@ -8,6 +8,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,21 +27,21 @@ public class PlayerEvents {
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getPlayer() instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-            playtimeData.playerLogin(player.getUniqueID(), player.getName().getString());
+            playtimeData.playerLogin(player.getUUID(), player.getName().getString());
             
             // Reset warnings
-            playerWarnings.put(player.getUniqueID(), 0);
+            playerWarnings.put(player.getUUID(), 0);
             
             // Show remaining time message
-            int remaining = playtimeData.getRemainingTime(player.getUniqueID());
+            int remaining = playtimeData.getRemainingTime(player.getUUID());
             if (remaining == Integer.MAX_VALUE) {
                 player.sendMessage(new StringTextComponent(
                         TextFormatting.GREEN + "It's Saturday! Enjoy unlimited playtime today."), 
-                        player.getUniqueID());
+                        player.getUUID());
             } else {
                 player.sendMessage(new StringTextComponent(
                         TextFormatting.GREEN + "Welcome! You have " + formatTime(remaining) + " of playtime remaining today."), 
-                        player.getUniqueID());
+                        player.getUUID());
             }
         }
     }
@@ -49,18 +50,18 @@ public class PlayerEvents {
     public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getPlayer() instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-            playtimeData.playerLogout(player.getUniqueID());
+            playtimeData.playerLogout(player.getUUID());
             
             // Clean up warnings
-            playerWarnings.remove(player.getUniqueID());
+            playerWarnings.remove(player.getUUID());
         }
     }
 
     @SubscribeEvent
-    public void onPlayerMove(net.minecraftforge.event.entity.player.PlayerEvent.PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerEvent.PlayerMoveEvent event) {
         if (event.getPlayer() instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-            playtimeData.updatePlayerActivity(player.getUniqueID());
+            playtimeData.updatePlayerActivity(player.getUUID());
         }
     }
 
@@ -78,13 +79,13 @@ public class PlayerEvents {
         tickCounter = 0;
         
         // Get server instance and player list
-        net.minecraft.server.MinecraftServer server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+        net.minecraft.server.MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) {
             return;
         }
         
         for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
-            UUID playerUUID = player.getUniqueID();
+            UUID playerUUID = player.getUUID();
             
             // Skip AFK players
             if (playtimeData.isPlayerAFK(playerUUID)) {
