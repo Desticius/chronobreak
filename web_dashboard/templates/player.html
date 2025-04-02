@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ player.name }}'s Stats{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="/" class="btn btn-sm btn-outline-secondary mb-3">
+            <span>←</span> Back to Leaderboard
+        </a>
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex align-items-center">
+                    <img src="https://crafatar.com/avatars/{{ player.uuid }}?size=64&overlay" alt="{{ player.name }}" class="me-3 rounded">
+                    <div>
+                

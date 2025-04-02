@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Chronobreak - Leaderboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Player Leaderboard</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Player</th>
+                                <th scope="col">Total Playtime</th>
+                                <th scope="col">Streak</th>
+                                <th scope="col">Last Seen</th>
+                                <th scope="col">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player in players %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://crafatar.com/avatars/{{ player.uuid }}?size=32&overlay" alt="{{ player.name }}" class="me-2 rounded">
+                                        {{ player.name }}
+                                    </div>
+                                </td>
+                                <td>{{ format_playtime(player.totalPlaytime) }}</td>
+                                <td>
+                                    {% if player.streak > 0 %}
+                                    <span class="badge bg-success">{{ player.streak }} day{{ 's' if player.streak != 1 }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ player.lastSeen }}</td>
+                                <td>
+                                    <a href="{{ url_for('player', uuid=player.uuid) }}" class="btn btn-sm btn-outline-primary">View Stats</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function format_playtime(minutes) {
+    if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        
+        if (hours >= 24) {
+            const days = Math.floor(hours / 24);
+            const hrs = hours % 24;
+            
+            return `${days}d ${hrs}h ${mins}m`;
+        } else {
+            return `${hours}h ${mins}m`;
+        }
+    } else {
+        return `${minutes}m`;
+    }
+}
+
+// Format playtime on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const playtimeCells = document.querySelectorAll('td:nth-child(3)');
+    playtimeCells.forEach(cell => {
+        const minutes = parseInt(cell.textContent.trim());
+        if (!isNaN(minutes)) {
+            cell.textContent = format_playtime(minutes);
+        }
+    });
+});
+</script>
+{% endblock %}

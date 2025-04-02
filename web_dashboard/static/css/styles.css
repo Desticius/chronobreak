@@ -1,0 +1,157 @@
+/* Chronobreak Dashboard Styles */
+
+/* Base styles */
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Card components */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    font-weight: bold;
+    padding: 12px 20px;
+}
+
+/* Table styling */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Player avatar styles */
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+.avatar-md {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+}
+
+/* Stat cards */
+.stat-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.stat-card .stat-label {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: #6c757d;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* Streak badge */
+.badge {
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+}
+
+.streak-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+/* Auto-update indicator */
+.auto-update {
+    font-style: italic;
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+/* Footer styling */
+footer {
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card .stat-value {
+        font-size: 2rem;
+    }
+    
+    .card-header h2 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Improved scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Minecraft-inspired elements */
+.minecraft-font {
+    font-family: 'Minecraft', 'VT323', monospace;
+}
+
+.player-render img {
+    image-rendering: pixelated;
+}
+
+/* Chart customization */
+.chart-container canvas {
+    max-height: 300px;
+}

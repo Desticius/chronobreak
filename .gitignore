@@ -1,0 +1,16 @@
+# Gradle
+.gradle/
+build/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Minecraft
+run/
+
+# Python
+__pycache__/
+*.pyc
+venv/
