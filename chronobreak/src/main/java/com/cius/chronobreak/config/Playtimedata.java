@@ -1,4 +1,4 @@
-package com.yourname.chronobreak.config;
+package com.cius.chronobreak.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

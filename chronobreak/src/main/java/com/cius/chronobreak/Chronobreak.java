@@ -1,10 +1,10 @@
-package com.yourname.chronobreak;
+package com.cius.chronobreak;
 
-import com.yourname.chronobreak.commands.AddtimeCommand;
-import com.yourname.chronobreak.commands.PlaytimeCommand;
-import com.yourname.chronobreak.commands.TimeleftCommand;
-import com.yourname.chronobreak.config.PlaytimeData;
-import com.yourname.chronobreak.events.PlayerEvents;
+import com.cius.chronobreak.commands.AddtimeCommand;
+import com.cius.chronobreak.commands.PlaytimeCommand;
+import com.cius.chronobreak.commands.TimeleftCommand;
+import com.cius.chronobreak.config.PlaytimeData;
+import com.cius.chronobreak.events.PlayerEvents;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;

@@ -1,4 +1,4 @@
-package com.yourname.chronobreak.commands;
+package com.cius.chronobreak.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;

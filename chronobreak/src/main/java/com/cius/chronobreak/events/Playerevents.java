@@ -1,6 +1,6 @@
-package com.yourname.chronobreak.events;
+package com.cius.chronobreak.events;
 
-import com.yourname.chronobreak.config.PlaytimeData;
+import com.cius.chronobreak.config.PlaytimeData;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
