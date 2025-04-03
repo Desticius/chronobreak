@@ -1,0 +1,26 @@
+# This is an example mods.toml file
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="timetracker"
+version="1.0.0"
+displayName="Time Tracker"
+description='''
+A simple mod to track player time and enforce limits.
+'''
+
+[[dependencies.timetracker]] 
+    modId="forge" 
+    mandatory=true 
+    versionRange="[47,)" 
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.timetracker]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="NONE"
+    side="BOTH"
