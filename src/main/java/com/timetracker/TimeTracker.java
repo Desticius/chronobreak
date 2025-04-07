@@ -1,8 +1,19 @@
 package com.timetracker;
 
+import com.timetracker.commands.AddtimeCommand;
+import com.timetracker.commands.PlaytimeCommand;
+import com.timetracker.commands.TimeleftCommand;
+import com.timetracker.commands.RemoveTimeCommand;
 import com.timetracker.config.PlayerTimeData;
 import com.timetracker.events.PlayerTimeEvents;
+import com.timetracker.config.ConfigManager;
+import com.mojang.brigadier.CommandDispatcher;
+
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -17,21 +28,41 @@ public class TimeTracker {
     private PlayerTimeData playerTimeData;
 
     public TimeTracker() {
-        LOGGER.info("Time Tracker mod initializing");
+        LOGGER.info("Chronobreak mod initializing");
         
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        modEventBus.addListener(this::setup);
+        
+        MinecraftForge.EVENT_BUS.register(this);
+        
+        // Load configuration
+        ConfigManager.loadConfig();
+        LOGGER.info("Loaded Chronobreak configuration");
         
         // Initialize player time data
         playerTimeData = new PlayerTimeData();
     }
     
     private void setup(final FMLCommonSetupEvent event) {
-        LOGGER.info("Time Tracker setup phase");
+        LOGGER.info("Chronobreak mod setup phase");
         
         // Load player time data
         playerTimeData.loadData();
         
         // Register player events
         MinecraftForge.EVENT_BUS.register(new PlayerTimeEvents(playerTimeData));
+    }
+    
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        LOGGER.info("Registering Chronobreak commands");
+        
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        
+        // Register commands
+        TimeleftCommand.register(dispatcher, playerTimeData);
+        PlaytimeCommand.register(dispatcher, playerTimeData);
+        AddtimeCommand.register(dispatcher, playerTimeData);
+        RemoveTimeCommand.register(dispatcher, playerTimeData);
     }
 }
